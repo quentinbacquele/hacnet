@@ -100,7 +100,7 @@ class BirdSetStreamingDataset(IterableDataset):
             yield waveform, length
             consumed += length / self.sample_rate
             emitted += 1
-            if emitted % 100 == 0:
+            if emitted % 1 == 0:
                 worker_id = worker_info.id if worker_info else 0
                 total_mb = (consumed * self.sample_rate * 2.0 / (1024 * 1024))
                 if local_target:
