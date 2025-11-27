@@ -102,19 +102,19 @@ class BirdSetStreamingDataset(IterableDataset):
             emitted += 1
             if emitted % 100 == 0:
                 worker_id = worker_info.id if worker_info else 0
+                total_mb = (consumed * self.sample_rate * 2.0 / (1024 * 1024))
                 if local_target:
                     progress = min(consumed / local_target, 1.0)
-                    total_mb = (consumed * self.sample_rate * 2.0 / (1024 * 1024))
-                    print(
+                    msg = (
                         f"[Data] Worker {worker_id}: {consumed/3600:.2f}h "
                         f"({progress*100:.1f}% of target, ~{total_mb:.1f} MB) downloaded."
                     )
                 else:
-                    total_mb = (consumed * self.sample_rate * 2.0 / (1024 * 1024))
-                    print(
+                    msg = (
                         f"[Data] Worker {worker_id}: {consumed/3600:.2f}h "
                         f"(~{total_mb:.1f} MB) downloaded (full split)."
                     )
+                print("\r" + msg, end="", flush=True)
             if local_target is not None and consumed >= local_target:
                 break
 
