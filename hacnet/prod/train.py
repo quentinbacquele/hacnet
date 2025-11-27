@@ -60,20 +60,37 @@ class BirdSetStreamingDataset(IterableDataset):
             local_target = local_target / worker_info.num_workers
         consumed = 0.0
         for example in iterator:
-            audio = example["audio"]
-            array = np.asarray(audio["array"], dtype=np.float32)
-            waveform = torch.from_numpy(array)
+            audio_field = example["audio"]
+            sr = audio_field.get("sampling_rate", self.sample_rate) if isinstance(audio_field, dict) else self.sample_rate
+
+            if isinstance(audio_field, dict):
+                if "array" in audio_field and audio_field["array"] is not None:
+                    waveform_np = np.asarray(audio_field["array"], dtype=np.float32)
+                    waveform = torch.from_numpy(waveform_np)
+                elif "path" in audio_field and audio_field["path"]:
+                    waveform, sr = torchaudio.load(audio_field["path"])
+                    waveform = waveform.squeeze(0)
+                else:
+                    continue
+            else:
+                waveform, sr = torchaudio.load(audio_field)
+                waveform = waveform.squeeze(0)
+
             if waveform.ndim > 1:
                 waveform = waveform.mean(dim=0)
-            sr = audio["sampling_rate"]
+
             if sr != self.sample_rate:
                 waveform = torchaudio.functional.resample(
                     waveform.unsqueeze(0),
                     sr,
                     self.sample_rate,
                 ).squeeze(0)
+
             waveform = waveform[: self.max_samples]
             length = waveform.shape[0]
+            if length == 0:
+                continue
+
             yield waveform, length
             consumed += length / self.sample_rate
             if local_target is not None and consumed >= local_target:
