@@ -56,11 +56,8 @@ class BirdSetStreamingDataset(IterableDataset):
         worker_info = get_worker_info()
         iterator = self.dataset
         local_target = self.target_seconds
-        if worker_info is not None:
-            iterator = iterator.shard(num_shards=worker_info.num_workers, index=worker_info.id, contiguous=True)
-            if local_target is not None:
-                local_target = local_target / worker_info.num_workers
-
+        if worker_info is not None and local_target is not None:
+            local_target = local_target / worker_info.num_workers
         consumed = 0.0
         for example in iterator:
             audio = example["audio"]
