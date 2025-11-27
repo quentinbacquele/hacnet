@@ -60,11 +60,11 @@ class BirdSetStreamingDataset(IterableDataset):
             local_target = local_target / worker_info.num_workers
         consumed = 0.0
         emitted = 0
-        print(
-            f"[Data] Worker {worker_info.id if worker_info else 0}: "
-            f"starting stream (target {local_target/3600:.2f}h)"
-            if local_target else "[Data] Starting stream with full split"
-        )
+        worker_id = worker_info.id if worker_info else 0
+        if local_target:
+            print(f"[Data] Worker {worker_id}: starting stream (target {local_target/3600:.2f}h)")
+        else:
+            print(f"[Data] Worker {worker_id}: starting stream (full split, no limit)")
         for example in iterator:
             audio_field = example["audio"]
             sr = audio_field.get("sampling_rate", self.sample_rate) if isinstance(audio_field, dict) else self.sample_rate
@@ -100,18 +100,21 @@ class BirdSetStreamingDataset(IterableDataset):
             yield waveform, length
             consumed += length / self.sample_rate
             emitted += 1
-            if local_target is not None and emitted % 100 == 0:
-                progress = consumed / local_target
+            if emitted % 100 == 0:
                 worker_id = worker_info.id if worker_info else 0
-                print(
-                    f"[Data] Worker {worker_id}: {consumed/3600:.2f}h "
-                    f"({min(progress*100, 100):.1f}% of target) downloaded."
-                )
-            elif emitted % 100 == 0:
-                worker_id = worker_info.id if worker_info else 0
-                print(
-                    f"[Data] Worker {worker_id}: {consumed/3600:.2f}h downloaded (full split)."
-                )
+                if local_target:
+                    progress = min(consumed / local_target, 1.0)
+                    total_mb = (consumed * self.sample_rate * 2.0 / (1024 * 1024))
+                    print(
+                        f"[Data] Worker {worker_id}: {consumed/3600:.2f}h "
+                        f"({progress*100:.1f}% of target, ~{total_mb:.1f} MB) downloaded."
+                    )
+                else:
+                    total_mb = (consumed * self.sample_rate * 2.0 / (1024 * 1024))
+                    print(
+                        f"[Data] Worker {worker_id}: {consumed/3600:.2f}h "
+                        f"(~{total_mb:.1f} MB) downloaded (full split)."
+                    )
             if local_target is not None and consumed >= local_target:
                 break
 
