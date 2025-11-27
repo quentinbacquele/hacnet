@@ -59,6 +59,7 @@ class BirdSetStreamingDataset(IterableDataset):
         if worker_info is not None and local_target is not None:
             local_target = local_target / worker_info.num_workers
         consumed = 0.0
+        emitted = 0
         for example in iterator:
             audio_field = example["audio"]
             sr = audio_field.get("sampling_rate", self.sample_rate) if isinstance(audio_field, dict) else self.sample_rate
@@ -93,6 +94,14 @@ class BirdSetStreamingDataset(IterableDataset):
 
             yield waveform, length
             consumed += length / self.sample_rate
+            emitted += 1
+            if local_target is not None and emitted % 100 == 0:
+                progress = consumed / local_target
+                worker_id = worker_info.id if worker_info else 0
+                print(
+                    f"[Data] Worker {worker_id}: {consumed/3600:.2f}h "
+                    f"({min(progress*100, 100):.1f}% of target) downloaded."
+                )
             if local_target is not None and consumed >= local_target:
                 break
 
