@@ -73,6 +73,11 @@ class BirdSetStreamingDataset(IterableDataset):
                 if "array" in audio_field and audio_field["array"] is not None:
                     waveform_np = np.asarray(audio_field["array"], dtype=np.float32)
                     waveform = torch.from_numpy(waveform_np)
+                elif "bytes" in audio_field and audio_field["bytes"] is not None:
+                    import io
+                    byte_buffer = io.BytesIO(audio_field["bytes"])
+                    waveform, sr = torchaudio.load(byte_buffer)
+                    waveform = waveform.squeeze(0)
                 elif "path" in audio_field and audio_field["path"]:
                     waveform, sr = torchaudio.load(audio_field["path"])
                     waveform = waveform.squeeze(0)
