@@ -60,6 +60,11 @@ class BirdSetStreamingDataset(IterableDataset):
             local_target = local_target / worker_info.num_workers
         consumed = 0.0
         emitted = 0
+        print(
+            f"[Data] Worker {worker_info.id if worker_info else 0}: "
+            f"starting stream (target {local_target/3600:.2f}h)"
+            if local_target else "[Data] Starting stream with full split"
+        )
         for example in iterator:
             audio_field = example["audio"]
             sr = audio_field.get("sampling_rate", self.sample_rate) if isinstance(audio_field, dict) else self.sample_rate
@@ -101,6 +106,11 @@ class BirdSetStreamingDataset(IterableDataset):
                 print(
                     f"[Data] Worker {worker_id}: {consumed/3600:.2f}h "
                     f"({min(progress*100, 100):.1f}% of target) downloaded."
+                )
+            elif emitted % 100 == 0:
+                worker_id = worker_info.id if worker_info else 0
+                print(
+                    f"[Data] Worker {worker_id}: {consumed/3600:.2f}h downloaded (full split)."
                 )
             if local_target is not None and consumed >= local_target:
                 break
