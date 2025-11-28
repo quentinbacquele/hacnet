@@ -1,20 +1,20 @@
-from .encoder import MelConfig, CausalConvEncoder
+from .encoder import FullEncoderConfig, HNetEncoder
 from .router import RouterConfig, MultiLagRouter
 from .chunker import ChunkerConfig, BoundaryChunker
-from .mainnet import MainNetConfig, TransformerMainNet
+from .mainnet import FullMainNetConfig, HNetMainNet
 from .dechunker import EMADechunker
-from .decoder import DecoderConfig, CausalDecoder
+from .decoder import FullDecoderConfig, HNetDecoder
 
 __all__ = [
-    "MelConfig",
-    "CausalConvEncoder",
+    "FullEncoderConfig",
+    "HNetEncoder",
     "RouterConfig",
     "MultiLagRouter",
     "ChunkerConfig",
     "BoundaryChunker",
-    "MainNetConfig",
-    "TransformerMainNet",
+    "FullMainNetConfig",
+    "HNetMainNet",
     "EMADechunker",
-    "DecoderConfig",
-    "CausalDecoder",
+    "FullDecoderConfig",
+    "HNetDecoder",
 ]
