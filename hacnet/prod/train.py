@@ -29,6 +29,8 @@ from hacnet.minimal.utils.losses import (
     refractory_loss,
 )
 from hacnet.minimal.utils.monitor import TrainingMonitor
+import warnings
+warnings.filterwarnings("ignore", message="torio.io._streaming_media_decoder.StreamingMediaDecoder has been deprecated")
 
 
 class BirdSetStreamingDataset(IterableDataset):
