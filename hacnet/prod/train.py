@@ -40,6 +40,7 @@ class BirdSetStreamingDataset(IterableDataset):
         target_hours: Optional[float],
         sample_rate: int,
         max_clip_seconds: float = 5.0,
+        streaming: bool = True,
     ):
         super().__init__()
         self.split = split
@@ -50,7 +51,7 @@ class BirdSetStreamingDataset(IterableDataset):
             "DBD-research-group/BirdSet",
             "XCL",
             split=split,
-            streaming=True,
+            streaming=streaming,
             trust_remote_code=True,
         )
 
@@ -169,6 +170,7 @@ def train(args):
         target_hours=args.train_hours,
         sample_rate=config.encoder.sample_rate,
         max_clip_seconds=args.clip_max_seconds,
+        streaming=args.streaming,
     )
     dataloader = DataLoader(
         dataset,
@@ -367,6 +369,11 @@ def parse_args():
                         help="Total hours of audio to stream before stopping (default: entire split).")
     parser.add_argument("--clip-max-seconds", type=float, default=5.0,
                         help="Maximum seconds per clip fed to the model (default: 5).")
+    parser.add_argument("--streaming", action="store_true", dest="streaming",
+                        help="Enable Hugging Face streaming mode (default: disabled).")
+    parser.add_argument("--no-streaming", action="store_false", dest="streaming",
+                        help="Explicitly disable streaming (default).")
+    parser.set_defaults(streaming=False)
     parser.add_argument("--steps-per-epoch", type=int, default=None,
                         help="Optional steps per epoch hint for streaming datasets.")
     parser.add_argument("--router-lags", type=str, default=None,
