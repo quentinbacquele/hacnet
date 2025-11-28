@@ -1,9 +1,12 @@
 # Install the CUDA-enabled PyTorch build for your hardware first (e.g. via pip or conda).
 # Then install the remaining Python dependencies with:
 #   pip install -r requirements.txt
+# export PYTHONPATH=/workspace/hacnet:$PYTHONPATH
 
-datasets>=2.19.0
+datasets==3.0.0
 SoundFile>=0.12.1
 tqdm>=4.66.0
 wandb>=0.17.0
 torchaudio>=2.2.0
+scipy>=1.11.0
+matplotlib>=3.8.0
